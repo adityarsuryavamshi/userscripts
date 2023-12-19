@@ -10,13 +10,15 @@
 // @grant       GM_addElement
 // @grant       GM_registerMenuCommand
 // @grant       GM_unregisterMenuCommand
+// @grant       GM_getValue
+// @grant       GM_setValue
 // @resource    backgroundAudio https://raw.githubusercontent.com/adityarsuryavamshi/userscripts/master/media/background.mp3
 // ==/UserScript==
 
 
 
 
-function addBackgroundAudioAndPlay() {
+function enableAudio() {
     const audioContent = GM_getResourceURL("backgroundAudio")
     const audioElem = GM_addElement('audio', {
         id: 'vm-background-playback',
@@ -37,20 +39,40 @@ function disableAudio() {
     document.querySelector('#vm-background-playback').remove();
 }
 
-let enabled = false;
 
 function handleClick() {
-    if (!enabled) {
-        addBackgroundAudioAndPlay();
-        enabled = true;
+    const enabledState = GM_getValue("enabled", false);
+
+    if (!enabledState) {
+        // Currently not in enabledState so enable it
+        try {
+            enableAudio()
+        } catch (err) {
+            console.error(`Failed to enableAudio: ${err}`)
+        }
+
+        GM_setValue("enabled", true);
         GM_unregisterMenuCommand('Enable');
         GM_registerMenuCommand("Disable", handleClick);
     } else {
-        disableAudio();
-        enabled = false;
+        // Currently in enabledState so try to disableAudio
+        try {
+            disableAudio();
+        } catch (err) {
+            console.error(`Failed to disableAudio : ${err}`)
+        }
+        GM_setValue("enabled", false);
         GM_unregisterMenuCommand("Disable");
         GM_registerMenuCommand("Enable", handleClick);
     }
 }
 
 GM_registerMenuCommand("Enable", handleClick);
+
+
+// Persist across location.reload()'s
+if (GM_getValue("enabled")) {
+    enableAudio();
+    GM_unregisterMenuCommand('Enable');
+    GM_registerMenuCommand("Disable", handleClick);
+}

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Keep Tab Active
-// @version     1.0
+// @version     1.0.1
 // @namespace   https://github.com/adityarsuryavamshi
 // @description Keep tab active by playing a background audio. This is usually used in conjunction with other scripts to perform background tasks.
 // @icon        https://api.dicebear.com/7.x/adventurer/svg?seed=keep-tab-active
@@ -12,13 +12,15 @@
 // @grant       GM_unregisterMenuCommand
 // @grant       GM_getValue
 // @grant       GM_setValue
+// @grant       GM_deleteValue
 // @resource    backgroundAudio https://raw.githubusercontent.com/adityarsuryavamshi/userscripts/master/media/background.mp3
 // ==/UserScript==
 
 
+const enabledKey = (location) => `enabled_${location.href}`;
 
 
-function enableAudio() {
+async function enableAudio() {
     const audioContent = GM_getResourceURL("backgroundAudio")
     const audioElem = GM_addElement('audio', {
         id: 'vm-background-playback',
@@ -26,12 +28,13 @@ function enableAudio() {
         loop: true
     })
 
-    audioElem.play()
-        .catch(e => {
-            console.error(`Failed to play audio: ${e}`)
-        });
-
-    return audioElem;
+    try {
+        await audioElem.play()
+        return true;
+    } catch (err) {
+        console.log(`Failed to enableAudio: ${err}`)
+        return false;
+    }
 }
 
 
@@ -39,40 +42,38 @@ function disableAudio() {
     document.querySelector('#vm-background-playback').remove();
 }
 
-
-function handleClick() {
-    const enabledState = GM_getValue("enabled", false);
-
-    if (!enabledState) {
-        // Currently not in enabledState so enable it
-        try {
-            enableAudio()
-        } catch (err) {
-            console.error(`Failed to enableAudio: ${err}`)
-        }
-
-        GM_setValue("enabled", true);
-        GM_unregisterMenuCommand('Enable');
-        GM_registerMenuCommand("Disable", handleClick);
-    } else {
-        // Currently in enabledState so try to disableAudio
-        try {
-            disableAudio();
-        } catch (err) {
-            console.error(`Failed to disableAudio : ${err}`)
-        }
-        GM_setValue("enabled", false);
+async function handleDisableClick() {
+    try {
+        disableAudio();
+        GM_deleteValue(enabledKey(location));
         GM_unregisterMenuCommand("Disable");
-        GM_registerMenuCommand("Enable", handleClick);
+        GM_registerMenuCommand("Enable", handleEnableClick);
+    } catch (err) {
+        console.error(`Failed to disableAudio : ${err}`)
+    }
+
+}
+
+async function handleEnableClick() {
+    const audioEnabled = await enableAudio();
+    if (audioEnabled) {
+        GM_setValue(enabledKey(location), true);
+        GM_unregisterMenuCommand('Enable');
+        GM_registerMenuCommand('Disable', handleDisableClick)
+    } else {
+        // Delete key if it exists, if we were not able to enable audio
+        GM_deleteValue(enabledKey(location));
     }
 }
 
-GM_registerMenuCommand("Enable", handleClick);
 
 
-// Persist across location.reload()'s
-if (GM_getValue("enabled")) {
-    enableAudio();
-    GM_unregisterMenuCommand('Enable');
-    GM_registerMenuCommand("Disable", handleClick);
-}
+GM_registerMenuCommand("Enable", handleEnableClick);
+
+
+(async () => {
+    // Persist across location.reload()'s
+    if (GM_getValue(enabledKey(location))) {
+        handleEnableClick();
+    }
+})()

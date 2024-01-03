@@ -33,13 +33,15 @@ const htmlPage = `
 
         img.zoomed-in {
             height: 100%;
+            max-height: unset;
             cursor: zoom-out;
         }
 
         img {
             display: block;
             margin: auto;
-            height: 100vh;
+            max-width: 100%;
+            max-height: 100vh;
             cursor: zoom-in;
         }
     </style>

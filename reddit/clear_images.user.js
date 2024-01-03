@@ -6,7 +6,6 @@
 // @icon        https://www.redditstatic.com/desktop2x/img/favicon/android-icon-512x512.png
 // @author      Aditya
 // @match       https://www.reddit.com/media*
-// @run-at      document-start
 // ==/UserScript==
 
 

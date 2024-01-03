@@ -58,5 +58,7 @@ document.querySelector('html').innerHTML = htmlPage;
 const imgElement = document.querySelector('img');
 
 imgElement.addEventListener('click', e => {
-    imgElement.classList.toggle('zoomed-in');
+    if (screen.width > imgElement.width) {
+        imgElement.classList.toggle('zoomed-in');
+    }
 })

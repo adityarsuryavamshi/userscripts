@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Clear Images
-// @version     1.0
+// @version     1.1
 // @namespace   https://github.com/adityarsuryavamshi
 // @description Strip out unnecessary branding from Reddit Media Pages
 // @icon        https://www.redditstatic.com/desktop2x/img/favicon/android-icon-512x512.png
@@ -34,6 +34,7 @@ const htmlPage = `
         img.zoomed-in {
             height: 100%;
             max-height: unset;
+            max-width: unset;
             cursor: zoom-out;
         }
 
@@ -58,7 +59,8 @@ document.querySelector('html').innerHTML = htmlPage;
 const imgElement = document.querySelector('img');
 
 imgElement.addEventListener('click', e => {
-    if (screen.width > imgElement.width) {
+    // Allow zooming only after tablet sized devices, since before that it's easier to zoom by pinching in
+    if (screen.width >= 760 || imgElement.classList.toggle('zoomed-in')) {
         imgElement.classList.toggle('zoomed-in');
     }
 })

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Get Product List
-// @version     1.0
+// @version     1.1
 // @namespace   https://github.com/adityarsuryavamshi
 // @description Copy products from product hunt time travel page into clipboard
 // @icon        https://ph-static.imgix.net/ph-favicon-coral.ico
@@ -67,7 +67,7 @@ let lastScrollHeight;
 let retryCount = 0;
 
 
-function scrollToEnd() {
+function scrollToEnd(callBack) {
     const currentScrollHeight = document.body.scrollHeight;
     if (currentScrollHeight === lastScrollHeight) {
         retryCount += 1
@@ -80,10 +80,10 @@ function scrollToEnd() {
         lastScrollHeight = currentScrollHeight;
         setTimeout(scrollToEnd, 300);
     } else {
-        onClick();
+        callBack();
     }
 
 }
 
-GM_registerMenuCommand('Get Products', onClick)
-scrollToEnd()
+GM_registerMenuCommand('Get Products', onClick);
+scrollToEnd(onclick);
